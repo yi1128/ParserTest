@@ -1,6 +1,6 @@
-#pragma once
 #include <stdint.h>
 
+#pragma once
 /* Define */
 /* ROBOT SETTING STATUS */
 #define JOINT_PARAMETER_SET 		0
@@ -32,6 +32,9 @@
 #define GRAVITY_WITH_CARTESIAN_MODE 5
 /* End Define */
 
+#define JOINT_AXIS 4
+#define CARTESIAN_AXIS 3
+
 /* Structure */
 /* COMMUNICATION STRUCTURE */
 #pragma pack(push,1)
@@ -45,15 +48,15 @@ typedef struct MsgState
 
 typedef struct AxisServerData
 {
-	float* actualMotorPosition;
-	float* actualLinkPosition;
-	float* actualMotorVelocity;
-	float* actualLinkVelocity;
-	float* actualCurrent;
-	float* targetPosition;
-	float* targetCurrent;
-	float* modeOfOperation;
-	float* statusword;
+	float actualMotorPosition[JOINT_AXIS];
+	float actualMotorVelocity[JOINT_AXIS];
+	float actualLinkPosition[JOINT_AXIS];
+	float actualLinkVelocity[JOINT_AXIS];
+	float actualCurrent[JOINT_AXIS];
+	float targetPosition[JOINT_AXIS];
+	float targetCurrent[JOINT_AXIS];
+	int32_t modeOfOperation[JOINT_AXIS];
+	int32_t statusword[JOINT_AXIS];
 }Axis;
 
 typedef struct ServerSystemData
@@ -62,58 +65,57 @@ typedef struct ServerSystemData
 	int32_t logCnt;
 	int32_t gravityMode;
 	int32_t targetReached;
-	int32_t controlMode;
 	// Cartesian Position Info;
-	float* cartesianTargetPose;
-	float* cartesianCurrentPose;
+	float cartesianTargetPose[CARTESIAN_AXIS];
+	float cartesianCurrentPose[CARTESIAN_AXIS];
 	// Cartesian Trajectory Info
-	float* targetTrajectoryTime;
-	float* targetTrajectoryAcc;
+	float targetTrajectoryTime[CARTESIAN_AXIS];
+	float targetTrajectoryAcc[CARTESIAN_AXIS];
 	// Module Data (Motor Driver)
-	Axis* moduleData;
+	Axis moduleData;
 };
 
 typedef struct JointParameterSettingStruct
 {
-	float* jointPositionPgain;
-	float* jointPositionIgain;
-	float* jointPositionDgain;
+	float jointPositionPgain[JOINT_AXIS];
+	float jointPositionIgain[JOINT_AXIS];
+	float jointPositionDgain[JOINT_AXIS];
 
-	float* jointTorquePgain;
-	float* jointTorqueIgain;
-	float* jointTorqueDgain;
+	float jointTorquePgain[JOINT_AXIS];
+	float jointTorqueIgain[JOINT_AXIS];
+	float jointTorqueDgain[JOINT_AXIS];
 
-	float* jointConstantEfficiency;
-	float* jointConstantTorque;
-	float* jointConstantSpring;
+	float jointConstantEfficiency[JOINT_AXIS];
+	float jointConstantTorque[JOINT_AXIS];
+	float jointConstantSpring[JOINT_AXIS];
 
-	float* jointGravityGain;
-	float* jointCurrentGain;
-	float* jointFrictionGain;
+	float jointGravityGain[JOINT_AXIS];
+	float jointCurrentGain[JOINT_AXIS];
+	float jointFrictionGain[JOINT_AXIS];
 };
 
 typedef struct JointTrajectorySetStruct
 {
-	float* JointTrajecotryTime;
-	float* JointTrajectoryAcc;
+	float JointTrajecotryTime[JOINT_AXIS];
+	float JointTrajectoryAcc[JOINT_AXIS];
 };
 
 typedef struct CartesianParameterSettingStruct
 {
-	float* cartesianPositionPgain;
-	float* cartesianPositionIgain;
-	float* cartesianPositionDgain;
+	float cartesianPositionPgain[CARTESIAN_AXIS];
+	float cartesianPositionIgain[CARTESIAN_AXIS];
+	float cartesianPositionDgain[CARTESIAN_AXIS];
 };
 
 typedef struct CartesianTrajectorySetStruct
 {
-	float* cartesianTrajectoryTime;
-	float* cartesianTrajectoryAcc;
+	float cartesianTrajectoryTime[CARTESIAN_AXIS];
+	float cartesianTrajectoryAcc[CARTESIAN_AXIS];
 };
 
 typedef struct JointTargetStruct
 {
-	float* jointTarget;
+	float jointTarget[JOINT_AXIS];
 };
 
 typedef struct CartesianTargetStruct
@@ -127,7 +129,3 @@ typedef struct CartesianTargetStruct
 };
 #pragma pack(pop)
 /* End Structure */
-
-
-
-

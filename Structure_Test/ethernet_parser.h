@@ -18,6 +18,7 @@ int CartesianParamSetStructSize = 0;
 int CartesianTrajSetStructSize = 0;
 int JointTargetStructSize = 0;
 int CartesianTargetStructSize = 0;
+int totalSize = 0;
 
 MsgState* MsgStateSend;
 MsgState* MsgStateRecv;
@@ -51,8 +52,8 @@ unsigned char bitPattern[8] = {
 /* End Bit Pattern*/
 
 /* Setting Value */
-int ROBOT_AXIS = 4;
-int CARTESIAN_AXIS = 6;
+//int ROBOT_AXIS = 4;
+//int CARTESIAN_AXIS = 6;
 /* End Setting Value */
 
 /* Buffer Declaration */
@@ -205,7 +206,6 @@ bool DataDivideJointServerSystemData
 /* End Function Declaration */
 
 
-
 /* Initialize & Release Structure  */
 void MsgStateInit(MsgState* _msgStatePtr)
 {
@@ -214,7 +214,7 @@ void MsgStateInit(MsgState* _msgStatePtr)
 	_msgStatePtr->commState = REGISTRATION;
 	_msgStatePtr->payloadSize = 0;
 	_msgStatePtr->controlMode = NONE_MODE;
-	MsgStateSize = _msize(_msgStatePtr);
+	MsgStateSize = sizeof(MsgState);
 }
 
 void MsgStateRelease(MsgState* _msgStatePtr)
@@ -224,94 +224,29 @@ void MsgStateRelease(MsgState* _msgStatePtr)
 
 bool ServerSystemDataInit(ServerSystemData* _msgDataPtr)
 {
-	ServerSystemDataSize = 0;
 	_msgDataPtr->cnt = 0;
-	ServerSystemDataSize += sizeof(_msgDataPtr->cnt);
 	_msgDataPtr->logCnt = 0;
-	ServerSystemDataSize += sizeof(_msgDataPtr->logCnt);
 	_msgDataPtr->gravityMode = 0;
-	ServerSystemDataSize += sizeof(_msgDataPtr->gravityMode);
 	_msgDataPtr->targetReached = 0;
-	ServerSystemDataSize += sizeof(_msgDataPtr->targetReached);
-	_msgDataPtr->controlMode = NONE_MODE;
-	ServerSystemDataSize += sizeof(_msgDataPtr->controlMode);
+	for (int i = 0; i < 3; i++) {
+		_msgDataPtr->cartesianTargetPose[i] = 0.0f;
+		_msgDataPtr->cartesianCurrentPose[i] = 0.0f;
+		_msgDataPtr->targetTrajectoryTime[i] = 0.0f;
+		_msgDataPtr->targetTrajectoryAcc[i] = 0.0f;
+	}
 
-	// Cartesian Position Info;
-	_msgDataPtr->cartesianTargetPose = (float*)calloc(CARTESIAN_AXIS, sizeof(float));
-	if (_msgDataPtr->cartesianTargetPose == NULL) {
-		return false;
+	for (int i = 0; i < 4; i++) {
+		_msgDataPtr->moduleData.actualMotorPosition[i] = 0.0f;
+		_msgDataPtr->moduleData.actualMotorVelocity[i] = 0.0f;
+		_msgDataPtr->moduleData.actualLinkPosition[i] = 0.0f;
+		_msgDataPtr->moduleData.actualLinkVelocity[i] = 0.0f;
+		_msgDataPtr->moduleData.actualCurrent[i] = 0.0f;
+		_msgDataPtr->moduleData.targetPosition[i] = 0.0f;
+		_msgDataPtr->moduleData.targetCurrent[i] = 0.0f;
+		_msgDataPtr->moduleData.modeOfOperation[i] = 0;
+		_msgDataPtr->moduleData.statusword[i] = 0;
 	}
-	ServerSystemDataSize += _msize(_msgDataPtr->cartesianTargetPose);
-	_msgDataPtr->cartesianCurrentPose = (float*)calloc(CARTESIAN_AXIS, sizeof(float));
-	if (_msgDataPtr->cartesianCurrentPose == NULL) {
-		return false;
-	}
-	ServerSystemDataSize += _msize(_msgDataPtr->cartesianCurrentPose);
-
-	// Cartesian Trajectory Info
-	_msgDataPtr->targetTrajectoryTime = (float*)calloc(CARTESIAN_AXIS, sizeof(float));
-	if (_msgDataPtr->targetTrajectoryTime == NULL) {
-		return false;
-	}
-	ServerSystemDataSize += _msize(_msgDataPtr->targetTrajectoryTime);
-	_msgDataPtr->targetTrajectoryAcc = (float*)calloc(CARTESIAN_AXIS, sizeof(float));
-	if (_msgDataPtr->targetTrajectoryAcc == NULL) {
-		return false;
-	}
-	ServerSystemDataSize += _msize(_msgDataPtr->targetTrajectoryAcc);
-
-	// Module Data (Motor Driver)
-	_msgDataPtr->moduleData = (Axis*)calloc(1, sizeof(Axis));
-	if (_msgDataPtr->moduleData == NULL) {
-		return false;
-	}
-	//ServerSystemDataSize += _msize(_msgDataPtr->moduleData);
-	_msgDataPtr->moduleData->actualMotorPosition = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->moduleData->actualMotorPosition == NULL) {
-		return false;
-	}
-	ServerSystemDataSize += _msize(_msgDataPtr->moduleData->actualMotorPosition);
-	_msgDataPtr->moduleData->actualLinkPosition = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->moduleData->actualLinkPosition == NULL) {
-		return false;
-	}
-	ServerSystemDataSize += _msize(_msgDataPtr->moduleData->actualLinkPosition);
-	_msgDataPtr->moduleData->actualMotorVelocity = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->moduleData->actualMotorVelocity == NULL) {
-		return false;
-	}
-	ServerSystemDataSize += _msize(_msgDataPtr->moduleData->actualMotorVelocity);
-	_msgDataPtr->moduleData->actualLinkVelocity = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->moduleData->actualLinkVelocity == NULL) {
-		return false;
-	}
-	ServerSystemDataSize += _msize(_msgDataPtr->moduleData->actualLinkVelocity);
-	_msgDataPtr->moduleData->actualCurrent = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->moduleData->actualCurrent == NULL) {
-		return false;
-	}
-	ServerSystemDataSize += _msize(_msgDataPtr->moduleData->actualCurrent);
-	_msgDataPtr->moduleData->targetPosition = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->moduleData->targetPosition == NULL) {
-		return false;
-	}
-	ServerSystemDataSize += _msize(_msgDataPtr->moduleData->targetPosition);
-	_msgDataPtr->moduleData->targetCurrent = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->moduleData->targetCurrent == NULL) {
-		return false;
-	}
-	ServerSystemDataSize += _msize(_msgDataPtr->moduleData->targetCurrent);
-	_msgDataPtr->moduleData->modeOfOperation = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->moduleData->modeOfOperation == NULL) {
-		return false;
-	}
-	ServerSystemDataSize += _msize(_msgDataPtr->moduleData->modeOfOperation);
-	_msgDataPtr->moduleData->statusword = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->moduleData->statusword == NULL) {
-		return false;
-	}
-	ServerSystemDataSize += _msize(_msgDataPtr->moduleData->statusword);
-
+	ServerSystemDataSize = sizeof(ServerSystemData);
 	return true;
 }
 
@@ -323,70 +258,24 @@ bool SeverSystemDataRelease(ServerSystemData* _msgDataPtr)
 
 bool JointParameterSettingStructInit(JointParameterSettingStruct* _msgDataPtr)
 {
-	JointParamSetStructSize = 0;
-	_msgDataPtr->jointPositionPgain = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->jointPositionPgain == NULL) {
-		return false;
-	}
-	JointParamSetStructSize += _msize(_msgDataPtr->jointPositionPgain);
-	_msgDataPtr->jointPositionIgain = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->jointPositionIgain == NULL) {
-		return false;
-	}
-	JointParamSetStructSize += _msize(_msgDataPtr->jointPositionIgain);
-	_msgDataPtr->jointPositionDgain = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->jointPositionDgain == NULL) {
-		return false;
-	}
-	JointParamSetStructSize += _msize(_msgDataPtr->jointPositionDgain);
+	for (int i = 0; i < 4; i++) {
+		_msgDataPtr->jointPositionPgain[i] = 0.0f;
+		_msgDataPtr->jointPositionIgain[i] = 0.0f;
+		_msgDataPtr->jointPositionDgain[i] = 0.0f;
 
-	_msgDataPtr->jointTorquePgain = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->jointTorquePgain == NULL) {
-		return false;
-	}
-	JointParamSetStructSize += _msize(_msgDataPtr->jointTorquePgain);
-	_msgDataPtr->jointTorqueIgain = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->jointTorqueIgain == NULL) {
-		return false;
-	}
-	JointParamSetStructSize += _msize(_msgDataPtr->jointTorqueIgain);
-	_msgDataPtr->jointTorqueDgain = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->jointTorqueDgain == NULL) {
-		return false;
-	}
-	JointParamSetStructSize += _msize(_msgDataPtr->jointTorqueDgain);
+		_msgDataPtr->jointTorquePgain[i] = 0.0f;
+		_msgDataPtr->jointTorqueIgain[i] = 0.0f;
+		_msgDataPtr->jointTorqueDgain[i] = 0.0f;
 
-	_msgDataPtr->jointConstantEfficiency = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->jointConstantEfficiency == NULL) {
-		return false;
-	}
-	JointParamSetStructSize += _msize(_msgDataPtr->jointConstantEfficiency);
-	_msgDataPtr->jointConstantTorque = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->jointConstantTorque == NULL) {
-		return false;
-	}
-	JointParamSetStructSize += _msize(_msgDataPtr->jointConstantTorque);
-	_msgDataPtr->jointConstantSpring = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->jointConstantSpring == NULL) {
-		return false;
-	}
-	JointParamSetStructSize += _msize(_msgDataPtr->jointConstantSpring);
+		_msgDataPtr->jointConstantEfficiency[i] = 0.0f;
+		_msgDataPtr->jointConstantTorque[i] = 0.0f;
+		_msgDataPtr->jointConstantSpring[i] = 0.0f;
 
-	_msgDataPtr->jointGravityGain = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->jointGravityGain == NULL) {
-		return false;
+		_msgDataPtr->jointGravityGain[i] = 0.0f;
+		_msgDataPtr->jointCurrentGain[i] = 0.0f;
+		_msgDataPtr->jointFrictionGain[i] = 0.0f;
 	}
-	JointParamSetStructSize += _msize(_msgDataPtr->jointGravityGain);
-	_msgDataPtr->jointCurrentGain = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->jointCurrentGain == NULL) {
-		return false;
-	}
-	JointParamSetStructSize += _msize(_msgDataPtr->jointCurrentGain);
-	_msgDataPtr->jointFrictionGain = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->jointFrictionGain == NULL) {
-		return false;
-	}
-	JointParamSetStructSize += _msize(_msgDataPtr->jointFrictionGain);
+	JointParamSetStructSize = sizeof(JointParameterSettingStruct);
 
 	return true;
 }
@@ -397,21 +286,13 @@ bool JointParameterSettingStructRelease(JointParameterSettingStruct* _msgDataPtr
 	return true;
 }
 
-
 bool JointTrajectorySetStructInit(JointTrajectorySetStruct* _msgDataPtr)
 {
-	JointTrajSetStructSize = 0;
-	_msgDataPtr->JointTrajecotryTime = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->JointTrajecotryTime == NULL) {
-		return false;
+	for (int i = 0; i < 4; i++) {
+		_msgDataPtr->JointTrajecotryTime[i] = 0.0f;
+		_msgDataPtr->JointTrajectoryAcc[i] = 0.0f;
 	}
-	JointTrajSetStructSize += _msize(_msgDataPtr->JointTrajecotryTime);
-	_msgDataPtr->JointTrajectoryAcc = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->JointTrajectoryAcc == NULL) {
-		return false;
-	}
-	JointTrajSetStructSize += _msize(_msgDataPtr->JointTrajectoryAcc);
-
+	JointTrajSetStructSize = sizeof(JointTrajectorySetStruct);
 	return true;
 }
 
@@ -423,22 +304,12 @@ bool JointTrajectorySetStructRelease(JointTrajectorySetStruct* _msgDataPtr)
 
 bool CartesianParameterSettingStructInit(CartesianParameterSettingStruct* _msgDataPtr)
 {
-	CartesianParamSetStructSize = 0;
-	_msgDataPtr->cartesianPositionPgain = (float*)calloc(CARTESIAN_AXIS, sizeof(float));
-	if (_msgDataPtr->cartesianPositionPgain == NULL) {
-		return false;
+	for (int i = 0; i < 3; i++) {
+		_msgDataPtr->cartesianPositionPgain[i] = 0.0f;
+		_msgDataPtr->cartesianPositionIgain[i] = 0.0f;
+		_msgDataPtr->cartesianPositionDgain[i] = 0.0f;
 	}
-	CartesianParamSetStructSize += _msize(_msgDataPtr->cartesianPositionPgain);
-	_msgDataPtr->cartesianPositionIgain = (float*)calloc(CARTESIAN_AXIS, sizeof(float));
-	if (_msgDataPtr->cartesianPositionIgain == NULL) {
-		return false;
-	}
-	CartesianParamSetStructSize += _msize(_msgDataPtr->cartesianPositionIgain);
-	_msgDataPtr->cartesianPositionDgain = (float*)calloc(CARTESIAN_AXIS, sizeof(float));
-	if (_msgDataPtr->cartesianPositionDgain == NULL) {
-		return false;
-	}
-	CartesianParamSetStructSize += _msize(_msgDataPtr->cartesianPositionDgain);
+	CartesianParamSetStructSize = sizeof(CartesianParameterSettingStruct);
 	return true;
 }
 
@@ -450,18 +321,11 @@ bool CartesianParameterSettingStructRelease(CartesianParameterSettingStruct* _ms
 
 bool CartesianTrajectorySetStructInit(CartesianTrajectorySetStruct* _msgDataPtr)
 {
-	CartesianTrajSetStructSize = 0;
-	_msgDataPtr->cartesianTrajectoryTime = (float*)calloc(CARTESIAN_AXIS, sizeof(float));
-	if (_msgDataPtr->cartesianTrajectoryTime == NULL) {
-		return false;
+	for (int i = 0; i < 3; i++) {
+		_msgDataPtr->cartesianTrajectoryTime[i] = 0.0f;
+		_msgDataPtr->cartesianTrajectoryAcc[i] = 0.0f;
 	}
-	CartesianTrajSetStructSize += _msize(_msgDataPtr->cartesianTrajectoryTime);
-	_msgDataPtr->cartesianTrajectoryAcc = (float*)calloc(CARTESIAN_AXIS, sizeof(float));
-	if (_msgDataPtr->cartesianTrajectoryAcc == NULL) {
-		return false;
-	}
-	CartesianTrajSetStructSize += _msize(_msgDataPtr->cartesianTrajectoryAcc);
-
+	CartesianTrajSetStructSize = sizeof(CartesianTrajectorySetStruct);
 	return true;
 }
 
@@ -473,12 +337,11 @@ bool CartesianTrajectorySetStructRelease(CartesianTrajectorySetStruct* _msgDataP
 
 bool JointTargetStructInit(JointTargetStruct* _msgDataPtr)
 {
-	JointTargetStructSize = 0;
-	_msgDataPtr->jointTarget = (float*)calloc(ROBOT_AXIS, sizeof(float));
-	if (_msgDataPtr->jointTarget == NULL) {
-		return false;
+	for (int i = 0; i < 4; i++) {
+		_msgDataPtr->jointTarget[i] = 0.0f;
 	}
-	JointTargetStructSize += _msize(_msgDataPtr->jointTarget);
+	JointTargetStructSize = sizeof(JointTargetStruct);
+	return true;
 }
 
 bool JointTargetStructRelease(JointTargetStruct* _msgDataPtr)
@@ -505,7 +368,7 @@ void CartesianTargetStructRelease(CartesianTargetStruct* _msgDataPtr)
 /* Initialize & Release Structure End */
 
 /* All Variable Initialize */
-bool EtherNetStructure_Init()
+bool f()
 {
 	/* Send EtherNetStructure Init */
 	MsgStateSend = (MsgState*)malloc(sizeof(MsgState));
@@ -544,6 +407,17 @@ bool EtherNetStructure_Init()
 	if (!JointTargetStructInit(jTargetGet)) return false;
 	CartesianTargetStructInit(cTargetGet);
 	/* End Recv EtherNetStructure Init */
+
+	/* Size Get */
+	totalSize = MsgStateSize +
+		JointParamSetStructSize +
+		JointTargetStructSize +
+		CartesianParamSetStructSize +
+		CartesianTrajSetStructSize +
+		JointTrajSetStructSize +
+		CartesianTargetStructSize +
+		ServerSystemDataSize;
+	/* End Size Get */
 	return true;
 }
 /* End All Variable Initialize */
@@ -558,12 +432,14 @@ bool MsgStateToBuffer(MsgState* _msgStatePtr, int8_t* buff)
 			return false;
 		}
 	}
+	/*
 	else {
 		buff = (int8_t*)realloc(buff, MsgStateSize);
 		if (buff == NULL) {
 			return false;
 		}
 	}
+	*/
 	memcpy(buff, _msgStatePtr, MsgStateSize);
 	return true;
 }
@@ -577,12 +453,14 @@ bool ServerSystemDataToBuffer(ServerSystemData* _msgDataPtr, int8_t* buff)
 			return false;
 		}
 	}
+	/*
 	else {
 		buff = (int8_t*)realloc(buff, ServerSystemDataSize);
 		if (buff == NULL) {
 			return false;
 		}
 	}
+	*/
 	memcpy(buff, _msgDataPtr, ServerSystemDataSize);
 	return true;
 }
@@ -596,12 +474,14 @@ bool JointParameterSettingStructToBuffer(JointParameterSettingStruct* _msgDataPt
 			return false;
 		}
 	}
+	/*
 	else {
 		buff = (int8_t*)realloc(buff, JointParamSetStructSize);
 		if (buff == NULL) {
 			return false;
 		}
 	}
+	*/
 	memcpy(buff, _msgDataPtr, JointParamSetStructSize);
 	return true;
 }
@@ -615,12 +495,14 @@ bool JointTrajectorySetStructToBuffer(JointTrajectorySetStruct* _msgDataPtr, int
 			return false;
 		}
 	}
+	/*
 	else {
 		buff = (int8_t*)realloc(buff, JointTrajSetStructSize);
 		if (buff == NULL) {
 			return false;
 		}
 	}
+	*/
 	memcpy(buff, _msgDataPtr, JointTrajSetStructSize);
 	return true;
 }
@@ -634,12 +516,14 @@ bool CartesianParameterSettingStructToBuffer(CartesianParameterSettingStruct* _m
 			return false;
 		}
 	}
+	/*
 	else {
 		buff = (int8_t*)realloc(buff, CartesianParamSetStructSize);
 		if (buff == NULL) {
 			return false;
 		}
 	}
+	*/
 	memcpy(buff, _msgDataPtr, CartesianParamSetStructSize);
 	return true;
 }
@@ -653,50 +537,54 @@ bool CartesianTrajectorySetStructToBuffer(CartesianTrajectorySetStruct* _msgData
 			return false;
 		}
 	}
+	/*
 	else {
 		buff = (int8_t*)realloc(buff, CartesianTrajSetStructSize);
 		if (buff == NULL) {
 			return false;
 		}
 	}
+	*/
 	memcpy(buff, _msgDataPtr, CartesianTrajSetStructSize);
 	return true;
 }
 
 bool JointTargetStructToBuffer(JointTargetStruct* _msgDataPtr, int8_t* buff)
 {
-	if (buff == NULL)
-	{
+	if (buff == NULL) {
 		buff = (int8_t*)calloc(JointTargetStructSize, sizeof(int8_t));
 		if (buff == NULL) {
 			return false;
 		}
 	}
+	/*
 	else {
 		buff = (int8_t*)realloc(buff, JointTargetStructSize);
 		if (buff == NULL) {
 			return false;
 		}
 	}
+	*/
 	memcpy(buff, _msgDataPtr, JointTargetStructSize);
 	return true;
 }
 
 bool CartesianTargetStructToBuffer(CartesianTargetStruct* _msgDataPtr, int8_t* buff)
 {
-	if (buff == NULL)
-	{
+	if (buff == NULL) {
 		buff = (int8_t*)calloc(CartesianTargetStructSize, sizeof(int8_t));
 		if (buff == NULL) {
 			return false;
 		}
 	}
+	/*
 	else {
 		buff = (int8_t*)realloc(buff, CartesianTargetStructSize);
 		if (buff == NULL) {
 			return false;
 		}
 	}
+	*/
 	memcpy(buff, _msgDataPtr, CartesianTargetStructSize);
 	return true;
 }
@@ -717,6 +605,7 @@ bool BufferInit()
 			return false;
 		}
 	}
+
 
 	if (sendDataBuffer == NULL) {
 		sendDataBuffer = (int8_t*)calloc(1, sizeof(int8_t));
@@ -763,6 +652,7 @@ bool DataGethering2
 			return false;
 		}
 	}
+	/*
 	else {
 		int size = _msize(buff1) + _msize(buff2);
 		buffOut = (int8_t*)realloc(buffOut, size);
@@ -770,6 +660,7 @@ bool DataGethering2
 			return false;
 		}
 	}
+	*/
 
 	memcpy(buffOut, buff1, _msize(buff1));
 	memcpy(buffOut + _msize(buff1), buff2, _msize(buff2));
@@ -784,23 +675,22 @@ bool DataGethering3
 	int8_t* buffOut
 )
 {
-	printf_s("DataGethering3\n");
 	if (buffOut == NULL) {
-		printf_s("malloc\n");
 		int size = _msize(buff1) + _msize(buff2) + _msize(buff3);
 		buffOut = (int8_t*)calloc(size, sizeof(int8_t));
 		if (buffOut == NULL) {
 			return false;
 		}
 	}
+	/*
 	else {
 		int size = _msize(buff1) + _msize(buff2) + _msize(buff3);
 		buffOut = (int8_t*)realloc(buffOut, size);
-		printf_s("realloc\n");
 		if (buffOut == NULL) {
 			return false;
 		}
 	}
+	*/
 
 	memcpy(buffOut, buff1, _msize(buff1));
 	memcpy(buffOut + _msize(buff1), buff2, _msize(buff2));
@@ -825,6 +715,7 @@ bool DataGethering4
 			return false;
 		}
 	}
+	/*
 	else {
 		int size = _msize(buff1) + _msize(buff2) + _msize(buff3) + _msize(buff4);
 		buffOut = (int8_t*)realloc(buffOut, size);
@@ -832,6 +723,7 @@ bool DataGethering4
 			return false;
 		}
 	}
+	*/
 
 	memcpy(buffOut, buff1, _msize(buff1));
 	memcpy(buffOut + _msize(buff1), buff2, _msize(buff2));
@@ -857,6 +749,7 @@ bool DataGethering5
 			return false;
 		}
 	}
+	/*
 	else {
 		int size = _msize(buff1) + _msize(buff2) + _msize(buff3) + _msize(buff4) + _msize(buff5);
 		buffOut = (int8_t*)realloc(buffOut, size);
@@ -864,6 +757,7 @@ bool DataGethering5
 			return false;
 		}
 	}
+	*/
 
 	memcpy(buffOut, buff1, _msize(buff1));
 	memcpy(buffOut + _msize(buff1), buff2, _msize(buff2));
@@ -891,6 +785,7 @@ bool DataGethering6
 			return false;
 		}
 	}
+	/*
 	else {
 		int size = _msize(buff1) + _msize(buff2) + _msize(buff3) + _msize(buff4) + _msize(buff5) + _msize(buff6);
 		buffOut = (int8_t*)realloc(buffOut, size);
@@ -898,6 +793,7 @@ bool DataGethering6
 			return false;
 		}
 	}
+	*/
 
 	memcpy(buffOut, buff1, _msize(buff1));
 	memcpy(buffOut + _msize(buff1), buff2, _msize(buff2));
@@ -927,6 +823,7 @@ bool DataGethering7
 			return false;
 		}
 	}
+	/*
 	else {
 		int size = _msize(buff1) + _msize(buff2) + _msize(buff3) + _msize(buff4) + _msize(buff5) + _msize(buff6) + _msize(buff7);
 		buffOut = (int8_t*)realloc(buffOut, size);
@@ -934,6 +831,7 @@ bool DataGethering7
 			return false;
 		}
 	}
+	*/
 
 	memcpy(buffOut, buff1, _msize(buff1));
 	memcpy(buffOut + _msize(buff1), buff2, _msize(buff2));
@@ -965,6 +863,7 @@ bool DataGethering8
 			return false;
 		}
 	}
+	/*
 	else {
 		int size = _msize(buff1) + _msize(buff2) + _msize(buff3) + _msize(buff4) + _msize(buff5) + _msize(buff6) + _msize(buff7) + _msize(buff8);
 		buffOut = (int8_t*)realloc(buffOut, size);
@@ -972,6 +871,7 @@ bool DataGethering8
 			return false;
 		}
 	}
+	*/
 
 	memcpy(buffOut, buff1, _msize(buff1));
 	memcpy(buffOut + _msize(buff1), buff2, _msize(buff2));
@@ -1013,7 +913,9 @@ bool DataDivideJointParamSettingStruct
 	if (msg->packetType[0] & bitPattern[0]) {
 		memcpy(outputStruct, inputBuff + MsgStateSize, JointParamSetStructSize);
 	}
-
+	else {
+		return false;
+	}
 	return true;
 }
 
@@ -1028,13 +930,15 @@ bool DataDivideJointTrajectorySetStruct
 		return false;
 	}
 	int pointer = 0;
-
 	if (msg->packetType[0] & bitPattern[0]) {
 		pointer += JointParamSetStructSize;
 	}
 
-	if (pointer > 0) {
+	if (msg->packetType[0] & bitPattern[1]) {
 		memcpy(outputStruct, inputBuff + MsgStateSize + pointer, JointTrajSetStructSize);
+	}
+	else {
+		return false;
 	}
 	return true;
 }
@@ -1051,16 +955,19 @@ bool DataDivideCartesianParameterSettingStruct
 	}
 
 	int pointer = 0;
-	for (int i = 0; i < 2; i++) {
-		if (msg->packetType[0] & bitPattern[0]) {
-			pointer += JointParamSetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[1]) {
-			pointer += JointTrajSetStructSize;
-		}
+	if (msg->packetType[0] & bitPattern[0]) {
+		pointer += JointParamSetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[1]) {
+		pointer += JointTrajSetStructSize;
 	}
 
-	memcpy(outputStruct, inputBuff + MsgStateSize + pointer, CartesianParamSetStructSize);
+	if (msg->packetType[0] & bitPattern[2]) {
+		memcpy(outputStruct, inputBuff + MsgStateSize + pointer, CartesianParamSetStructSize);
+	}
+	else {
+		return false;
+	}
 	return true;
 }
 
@@ -1076,19 +983,22 @@ bool DataDivideCartesianTrajectorySetStruct
 	}
 
 	int pointer = 0;
-	for (int i = 0; i < 2; i++) {
-		if (msg->packetType[0] & bitPattern[0]) {
-			pointer += JointParamSetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[1]) {
-			pointer += JointTrajSetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[2]) {
-			pointer += CartesianParamSetStructSize;
-		}
+	if (msg->packetType[0] & bitPattern[0]) {
+		pointer += JointParamSetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[1]) {
+		pointer += JointTrajSetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[2]) {
+		pointer += CartesianParamSetStructSize;
 	}
 
-	memcpy(outputStruct, inputBuff + MsgStateSize + pointer, CartesianTrajSetStructSize);
+	if (msg->packetType[0] & bitPattern[3]) {
+		memcpy(outputStruct, inputBuff + MsgStateSize + pointer, CartesianTrajSetStructSize);
+	}
+	else {
+		return false;
+	}
 	return true;
 }
 
@@ -1104,27 +1014,30 @@ bool DataDivideJointTaregetStruct
 	}
 
 	int pointer = 0;
-	for (int i = 0; i < 2; i++) {
-		if (msg->packetType[0] & bitPattern[0]) {
-			pointer += JointParamSetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[1]) {
-			pointer += JointTrajSetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[2]) {
-			pointer += CartesianParamSetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[3]) {
-			pointer += CartesianTrajSetStructSize;
-		}
+
+	if (msg->packetType[0] & bitPattern[0]) {
+		pointer += JointParamSetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[1]) {
+		pointer += JointTrajSetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[2]) {
+		pointer += CartesianParamSetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[3]) {
+		pointer += CartesianTrajSetStructSize;
 	}
 
-	memcpy(outputStruct, inputBuff + MsgStateSize + pointer, JointTargetStructSize);
-
+	if (msg->packetType[0] & bitPattern[4]) {
+		memcpy(outputStruct, inputBuff + MsgStateSize + pointer, JointTargetStructSize);
+	}
+	else {
+		return false;
+	}
 	return true;
 }
 
-bool DataDivideJointCartesianTargetStruct
+bool DataDivideCartesianTargetStruct
 (
 	int8_t* inputBuff,
 	MsgState* msg,
@@ -1136,30 +1049,33 @@ bool DataDivideJointCartesianTargetStruct
 	}
 
 	int pointer = 0;
-	for (int i = 0; i < 2; i++) {
-		if (msg->packetType[0] & bitPattern[0]) {
-			pointer += JointParamSetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[1]) {
-			pointer += JointTrajSetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[2]) {
-			pointer += CartesianParamSetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[3]) {
-			pointer += CartesianTrajSetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[4]) {
-			pointer += JointTargetStructSize;
-		}
+
+	if (msg->packetType[0] & bitPattern[0]) {
+		pointer += JointParamSetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[1]) {
+		pointer += JointTrajSetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[2]) {
+		pointer += CartesianParamSetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[3]) {
+		pointer += CartesianTrajSetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[4]) {
+		pointer += JointTargetStructSize;
 	}
 
-	memcpy(outputStruct, inputBuff + MsgStateSize + pointer, CartesianTargetStructSize);
-
+	if (msg->packetType[0] & bitPattern[5]) {
+		memcpy(outputStruct, inputBuff + MsgStateSize + pointer, CartesianTargetStructSize);
+	}
+	else {
+		return false;
+	}
 	return true;
 }
 
-bool DataDivideJointServerSystemData
+bool DataDivideServerSystemData
 (
 	int8_t* inputBuff,
 	MsgState* msg,
@@ -1171,29 +1087,31 @@ bool DataDivideJointServerSystemData
 	}
 
 	int pointer = 0;
-	for (int i = 0; i < 2; i++) {
-		if (msg->packetType[0] & bitPattern[0]) {
-			pointer += JointParamSetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[1]) {
-			pointer += JointTrajSetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[2]) {
-			pointer += CartesianParamSetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[3]) {
-			pointer += CartesianTrajSetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[4]) {
-			pointer += JointTargetStructSize;
-		}
-		else if (msg->packetType[0] & bitPattern[5]) {
-			pointer += CartesianTargetStructSize;
-		}
+	if (msg->packetType[0] & bitPattern[0]) {
+		pointer += JointParamSetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[1]) {
+		pointer += JointTrajSetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[2]) {
+		pointer += CartesianParamSetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[3]) {
+		pointer += CartesianTrajSetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[4]) {
+		pointer += JointTargetStructSize;
+	}
+	if (msg->packetType[0] & bitPattern[5]) {
+		pointer += CartesianTargetStructSize;
 	}
 
-	memcpy(outputStruct, inputBuff + MsgStateSize + pointer, ServerSystemDataSize);
-
+	if (msg->packetType[0] & bitPattern[6]) {
+		memcpy(outputStruct, inputBuff + MsgStateSize + pointer, ServerSystemDataSize);
+	}
+	else {
+		return false;
+	}
 	return true;
 }
 /* End Function for Data Divide */

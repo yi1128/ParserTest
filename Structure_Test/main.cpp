@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
+#include <cstring>
 
 typedef struct nStruct
 {
@@ -49,6 +50,14 @@ extern struct JointTargetStruct* jTargetGet;
 
 extern struct CartesianTargetStruct* cTarget;
 extern struct CartesianTargetStruct* cTargetGet;
+
+
+int _vTask(int* n)
+{
+	for (int i = 0; i < 10; i++) {
+		printf("%d\n",n);
+	}
+}
 
 int main()
 {
@@ -269,7 +278,7 @@ int main()
 	MsgStateSend->commState = 12;
 	MsgStateSend->payloadSize = 155;
 
-	int8_t *inBuff = (int8_t*)malloc(sizeof(int8_t));
+	int8_t *inBuff = (int8_t*)malloc(MsgStateSize);
 	if (!MsgStateToBuffer(MsgStateSend, inBuff)) {
 		printf("Convert Fail!!\n");
 	}
@@ -364,12 +373,12 @@ int main()
 
 	}
 	
-	int8_t* inBuff2 = (int8_t*)calloc(1,sizeof(int8_t));
+	int8_t* inBuff2 = (int8_t*)malloc(JointParamSetStructSize);
 	if (!JointParameterSettingStructToBuffer(jParamSet, inBuff2)) {
 		printf("Convert Fail!!\n");
 	}
 
-	int8_t* combinedBuff = (int8_t*)calloc(1,sizeof(int8_t));
+	int8_t* combinedBuff = (int8_t*)malloc(MsgStateSize + JointParamSetStructSize);
 	if (!DataGethering2(inBuff, inBuff2, combinedBuff)) {
 		printf("Data Gethering Fail!!!\n");
 	}
@@ -434,41 +443,59 @@ int main()
 	
 
 #endif
-#if 1
+#if 0
+	
+
+	EtherNetStructure_Init();
+
 	int8_t* inBuff;
 	int8_t* inBuff2;
 	int8_t* inBuff3;
 	int8_t* Buffer;
 
-	EtherNetStructure_Init();
-	
+	printf_s("Convert To Buffer\n");
+	inBuff = (int8_t*)malloc(sizeof(int8_t));
+	MsgStateToBuffer(MsgStateSend, inBuff);
+	//printf_s("%d\n", _msize(inBuff));
+	inBuff2 = (int8_t*)malloc(sizeof(int8_t));
+	printf_s("%d\n", JointTrajectorySetStructToBuffer(jTrajSet, inBuff2));
+	//printf_s("%d\n", _msize(inBuff3));
+	inBuff3 = (int8_t*)malloc(sizeof(int8_t));
+	printf_s("%d\n", JointParameterSettingStructToBuffer(jParamSet, inBuff3));
+	//printf_s("%d\n", JointParamSetStructSize);
+	//printf_s("%d\n", _msize(inBuff2));
+	printf_s("Data Gethering\n");
+
+
 	for (;;)
 	{
-		printf_s("Convert To Buffer\n");
-		inBuff = (int8_t*)malloc(sizeof(int8_t));
-		MsgStateToBuffer(MsgStateSend, inBuff);
-		//printf_s("%d\n", _msize(inBuff));
-		inBuff2 = (int8_t*)malloc(sizeof(int8_t));
-		printf_s("%d\n", JointTrajectorySetStructToBuffer(jTrajSet, inBuff2));
-		//printf_s("%d\n", _msize(inBuff3));
-		inBuff3 = (int8_t*)malloc(sizeof(int8_t));
-		printf_s("%d\n", JointParameterSettingStructToBuffer(jParamSet, inBuff3));
-		//printf_s("%d\n", JointParamSetStructSize);
-		//printf_s("%d\n", _msize(inBuff2));
-		printf_s("Data Gethering\n");
-
 		//printf_s("%d %d %d\n", _msize(inBuff), _msize(inBuff2), _msize(inBuff3));
-		Buffer = (int8_t*)malloc(sizeof(int8_t));
+		Buffer = (int8_t*)malloc(MsgStateSize + JointTrajSetStructSize + JointParamSetStructSize);
 		printf_s("%d\n",DataGethering3(inBuff, inBuff2, inBuff3, Buffer));
 		printf_s("Complete!!\n");
 		//printf_s("%d\n", _msize(Buffer));
-		
-		free(inBuff);
-		free(inBuff2);
-		free(inBuff3);
 		free(Buffer);
+		
 	}
+	free(inBuff);
+	free(inBuff2);
+	free(inBuff3);
 	
+#endif
+
+#if 0
+	int32_t m = 12;
+	static int n = 0;
+	for (int i = 0; i < 50; i++) {
+		m = m + n + i;
+		n = i;
+		printf_s("%d\n", m);
+	}
+#endif
+
+#if 1
+	//bool s = EtherNetStructure_Init();
+
 #endif
 	return 0;
 }
